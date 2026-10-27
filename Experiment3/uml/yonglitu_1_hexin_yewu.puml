@@ -1,0 +1,60 @@
+@startuml
+left to right direction
+skinparam shadowing false
+skinparam defaultFontName Microsoft YaHei
+skinparam nodesep 22
+skinparam ranksep 30
+skinparam usecase {
+  BackgroundColor #FAFAFA
+  BorderColor #333333
+  FontSize 12
+}
+skinparam actor {
+  BackgroundColor #FAFAFA
+  BorderColor #333333
+  FontSize 13
+}
+skinparam rectangle {
+  BorderColor #333333
+  FontSize 14
+}
+
+actor "数据提供方" as TIGONG
+actor "平台用户" as YONGHU
+actor "数据使用方" as SHIYONG
+TIGONG -up-|> YONGHU
+SHIYONG -down-|> YONGHU
+
+rectangle "隐私计算数据共享平台" {
+  usecase "用户注册\nFR-UM-001" as U01
+  usecase "用户登录\nFR-UM-002" as U02
+  usecase "数据本地导入\nFR-DM-001" as U03
+  usecase "数据脱敏\nFR-DM-002" as U04
+  usecase "数据格式校验\nFR-DM-003" as U05
+  usecase "创建训练任务\nFR-FT-001" as U06
+  usecase "本地训练\nFR-FT-002" as U07
+  usecase "参数聚合\nFR-FT-003" as U08
+  usecase "训练状态监控\nFR-FT-004" as U09
+  usecase "差分隐私处理\nFR-PP-001" as U10
+  usecase "隐私预算追踪\nFR-PP-002" as U11
+  usecase "模型参数安全传输\nFR-PP-003" as U12
+  usecase "训练曲线展示\nFR-RV-001" as U13
+  usecase "隐私消耗展示\nFR-RV-002" as U14
+}
+
+YONGHU --> U01
+YONGHU --> U02
+YONGHU --> U09
+YONGHU --> U13
+YONGHU --> U14
+TIGONG --> U03
+TIGONG --> U07
+SHIYONG --> U06
+
+U03 ..> U05 : <<include>>
+U04 ..> U03 : <<extend>>
+U07 ..> U10 : <<include>>
+U07 ..> U11 : <<include>>
+U07 ..> U12 : <<include>>
+U06 ..> U08 : <<include>>
+@enduml
