@@ -1,0 +1,36 @@
+@startuml
+left to right direction
+skinparam shadowing false
+skinparam defaultFontName Microsoft YaHei
+skinparam nodesep 24
+skinparam ranksep 36
+skinparam usecase {
+  BackgroundColor #FAFAFA
+  BorderColor #333333
+  FontSize 12
+}
+skinparam actor {
+  BackgroundColor #FAFAFA
+  BorderColor #333333
+  FontSize 13
+}
+skinparam rectangle {
+  BorderColor #333333
+  FontSize 14
+}
+
+actor "系统管理员" as GUANLI
+
+rectangle "隐私计算数据共享平台 · 平台管理" {
+  usecase "用户与任务管理\nFR-AD-001" as A01
+  usecase "系统日志查看\nFR-AD-002" as A02
+  usecase "角色权限控制\nFR-UM-003" as A03
+  usecase "训练状态监控\nFR-FT-004" as A04
+}
+
+GUANLI --> A01
+GUANLI --> A02
+GUANLI --> A04
+A01 ..> A03 : <<include>>
+A01 ..> A04 : <<include>>
+@enduml

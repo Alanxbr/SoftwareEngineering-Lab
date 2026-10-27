@@ -1,0 +1,30 @@
+digraph yilai {
+  graph [rankdir=LR, splines=spline, nodesep=0.38, ranksep=1.15,
+         fontname="Microsoft YaHei", fontsize=12, pad=0.25, charset="UTF-8"];
+  node  [fontname="Microsoft YaHei", fontsize=12, shape=box, style="rounded,filled",
+         fillcolor="#FAFAFA", color="#333333", penwidth=1.1, margin="0.14,0.08"];
+  edge  [fontname="Microsoft YaHei", fontsize=10, color="#333333", penwidth=1.0,
+         arrowsize=0.75];
+
+  API [label="REST API 接口层"];
+  UM  [label="用户管理\nUM"];
+  DM  [label="数据管理\nDM"];
+  FT  [label="联邦训练\nFT"];
+  PP  [label="隐私保护\nPP"];
+  RV  [label="结果展示\nRV"];
+  AD  [label="系统管理\nAD"];
+  FL  [label="Flower 运行时", shape=box, style="rounded,dashed", fillcolor="#F5F5F5"];
+
+  API -> UM;
+  API -> DM;
+  API -> FT;
+  API -> RV;
+  API -> AD;
+  FT -> DM [label=" 读取数据集元信息 "];
+  FT -> PP [label=" 加噪与预算记录 "];
+  RV -> FT [label=" 读取训练指标 "];
+  RV -> PP [label=" 读取隐私日志 "];
+  AD -> UM [label=" 用户查询维护 "];
+  AD -> FT [label=" 任务状态管理 "];
+  FT -> FL [dir=both, label=" 联邦训练通信 "];
+}
