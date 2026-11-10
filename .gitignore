@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+*.db
+*.sqlite3
+.pytest_cache/
+.coverage
+htmlcov/
+
+# 演示和训练产生的参数文件
+Experiment6/src/canshu/
