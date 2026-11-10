@@ -1,0 +1,69 @@
+@startuml
+skinparam shadowing false
+skinparam defaultFontName Microsoft YaHei
+skinparam classAttributeIconSize 0
+skinparam nodesep 45
+skinparam ranksep 50
+skinparam class {
+  BackgroundColor #FAFAFA
+  BorderColor #333333
+  FontSize 12
+  AttributeFontSize 10
+  HeaderFontSize 12
+}
+skinparam package {
+  BorderColor #666666
+  BackgroundColor #FCFCFC
+  FontSize 12
+}
+hide circle
+hide empty members
+
+title 图 5-1 用户管理与系统管理模块类图
+
+package "用户管理（UM）" {
+  abstract class Yonghu {
+    - id : int
+    - yonghuming : str
+    - mima_hash : str
+    - jiaose : str
+    - zhuangtai : str
+    + zhuce() : Yonghu
+    + denglu(mima) : str
+    + jiancha_quanxian(gongneng) : bool
+  }
+
+  class ShujuTigongFang {
+    + dengji_shujuji(shujuji) : int
+    + shangchuan_jiaoyan_jieguo(jieguo)
+  }
+
+  class ShujuShiyongFang {
+    + chuangjian_renwu(peizhi) : int
+    + qidong_xunlian(renwu_id)
+  }
+
+  class XitongGuanliYuan {
+    + liechu_yonghu(ye, guanjianzi)
+    + chuli_yichang_renwu(renwu_id)
+  }
+}
+
+package "系统管理（AD）" {
+  class XitongRizhi {
+    - id : int
+    - caozuozhe_id : int
+    - caozuo_leixing : str
+    - duixiang_id : int
+    - jieguo : str
+    - rizhi_shijian : datetime
+    + xie_rizhi(jilu)
+  }
+}
+
+Yonghu <|-- ShujuTigongFang
+Yonghu <|-- ShujuShiyongFang
+Yonghu <|-- XitongGuanliYuan
+Yonghu "1" -- "0..*" XitongRizhi : 产生 >
+
+@enduml

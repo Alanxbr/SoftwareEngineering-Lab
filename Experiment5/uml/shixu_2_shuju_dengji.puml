@@ -1,0 +1,76 @@
+@startuml
+skinparam shadowing false
+skinparam defaultFontName Microsoft YaHei
+skinparam sequenceMessageAlign left
+skinparam responseMessageBelowArrow true
+skinparam participant {
+  BackgroundColor #FAFAFA
+  BorderColor #333333
+  FontSize 11
+}
+skinparam actor {
+  BackgroundColor #FAFAFA
+  BorderColor #333333
+  FontSize 11
+}
+skinparam database {
+  BackgroundColor #FAFAFA
+  BorderColor #333333
+  FontSize 11
+}
+skinparam arrow {
+  Color #333333
+  FontSize 10
+}
+
+title 图 5-6 数据集登记与格式校验时序图
+
+actor "数据提供方" as U
+participant "本地客户端" as LOCAL
+participant "前端页面" as FE
+participant "接口层\n（FastAPI）" as API
+participant "数据服务\nShujuFuwu" as DM
+database "SQLite\n数据库" as DB
+
+U -> LOCAL : 选择本地数据文件
+LOCAL -> LOCAL : 解析字段与样本统计
+LOCAL -> LOCAL : jiaoyan_geshi(字段列表)
+
+alt 格式校验不通过
+  LOCAL --> U : 返回错误字段与原因
+  U -> LOCAL : 修正数据后重新校验
+else 格式校验通过
+  LOCAL --> FE : 元信息（字段、样本数、大小）
+  U -> FE : 填写数据集名称与脱敏规则
+  FE -> API : POST /api/datasets
+  API -> API : 校验 Token 与参数
+  API -> DM : dengji_shujuji(yonghu_id, yuanxinxi)
+  DM -> DB : 检查名称是否重复
+  DB --> DM : 检查结果
+  alt 名称重复
+    DM --> API : 返回冲突
+    API --> FE : {code:409, message:"数据集名称已存在"}
+    FE --> U : 提示修改名称
+  else 名称可用
+    DM -> DB : 写入 shujuji（只存元信息）
+    DM --> API : 数据集编号
+    API --> FE : {code:0, data:{shujuji_id}}
+    FE --> U : 登记成功
+    FE -> API : POST /api/datasets/check
+    API -> DM : jiaoyan_geshi(jieguo)
+    DM -> DB : 保存校验结论
+    DM --> API : 校验结论
+    API --> FE : {code:0, data:{tongguo:true}}
+  end
+end
+
+opt 数据包含敏感字段
+  U -> LOCAL : 指定脱敏规则
+  LOCAL -> LOCAL : tuomin_ziduan(jilu, guize)
+  note right of LOCAL
+    脱敏在本地执行，
+    原始数据与脱敏结果都不上传
+  end note
+end
+
+@enduml

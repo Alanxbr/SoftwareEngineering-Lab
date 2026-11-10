@@ -1,0 +1,77 @@
+@startuml
+skinparam shadowing false
+skinparam defaultFontName Microsoft YaHei
+skinparam classAttributeIconSize 0
+skinparam nodesep 40
+skinparam ranksep 45
+skinparam class {
+  BackgroundColor #FAFAFA
+  BorderColor #333333
+  FontSize 12
+  AttributeFontSize 10
+  HeaderFontSize 12
+}
+skinparam package {
+  BorderColor #666666
+  BackgroundColor #FCFCFC
+  FontSize 12
+}
+hide circle
+hide empty members
+
+title 图 5-4 数据访问层类图
+
+package "数据访问层" {
+  abstract class DaoJichu {
+    # lianjie : Shujuku
+    + chaxun(sql, canshu) : list
+    + zhixing(sql, canshu) : int
+    + shiwu(huidiao)
+  }
+
+  class YonghuDao {
+    + anyonghu_id(id) : Yonghu
+    + anyonghuming(ming) : Yonghu
+    + chongming(ming) : bool
+  }
+
+  class ShujuDao {
+    + anshujuji_id(id) : Shujuji
+    + tigongfang_shujuji(yonghu_id) : list
+  }
+
+  class RenwuDao {
+    + anrenwu_id(id) : XunlianRenwu
+    + renwu_liebiao(ye, zhuangtai) : list
+  }
+
+  class LunciDao {
+    + anrenwu_lunci(renwu_id, lunci) : LunciJilu
+    + lunshu_jilu(renwu_id) : list
+  }
+
+  class YusuanDao {
+    + leiji_eps(renwu_id) : float
+    + yusuan_jilu(renwu_id) : list
+  }
+
+  class RizhiDao {
+    + xie_rizhi(jilu)
+    + chaxun_rizhi(tiaojian) : list
+  }
+}
+
+class Shujuku {
+  + lianjie() : Connection
+  + guanbi()
+}
+
+DaoJichu <|-- YonghuDao
+DaoJichu <|-- ShujuDao
+DaoJichu <|-- RenwuDao
+DaoJichu <|-- LunciDao
+DaoJichu <|-- YusuanDao
+DaoJichu <|-- RizhiDao
+DaoJichu --> Shujuku : 依赖 >
+
+@enduml

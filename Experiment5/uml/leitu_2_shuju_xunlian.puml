@@ -1,0 +1,107 @@
+@startuml
+skinparam shadowing false
+skinparam defaultFontName Microsoft YaHei
+skinparam classAttributeIconSize 0
+skinparam nodesep 40
+skinparam ranksep 45
+skinparam class {
+  BackgroundColor #FAFAFA
+  BorderColor #333333
+  FontSize 12
+  AttributeFontSize 10
+  HeaderFontSize 12
+}
+skinparam package {
+  BorderColor #666666
+  BackgroundColor #FCFCFC
+  FontSize 12
+}
+hide circle
+hide empty members
+
+title 图 5-2 数据管理、联邦训练与隐私保护模块类图
+
+package "数据管理（DM）" {
+  class Shujuji {
+    - id : int
+    - mingcheng : str
+    - geshi : str
+    - daxiao : int
+    - yangben_shu : int
+    - tuomin_guize : str
+    - tigongfang_id : int
+    - zhuangtai : str
+    + jiaoyan_geshi(ziduan) : list
+    + tuomin_ziduan(jilu, guize) : list
+  }
+}
+
+package "联邦训练（FT）" {
+  class XunlianRenwu {
+    - id : int
+    - mingcheng : str
+    - moxing_leixing : str
+    - lunshu : int
+    - piliang_daxiao : int
+    - xuexilv : float
+    - zhuangtai : str
+    - chuangjianzhe_id : int
+    + chuangjian(peizhi) : int
+    + qidong()
+    + xiafa_canshu(quanju_canshu)
+    + juhe_canshu(gengxin_liebiao) : quanju_canshu
+    + gengxin_zhuangtai(zhuangtai)
+  }
+
+  class CanjiaFang {
+    - id : int
+    - renwu_id : int
+    - yonghu_id : int
+    - shujuji_id : int
+    - yangben_shu : int
+    - zhuangtai : str
+    + bendi_xunlian() : gengxin
+    + shangchuan_gengxin(gengxin)
+    + baogao_zhuangtai(zhuangtai)
+  }
+
+  class LunciJilu {
+    - id : int
+    - renwu_id : int
+    - lunci_hao : int
+    - sunshi : float
+    - zhunquelv : float
+    - haoshi : float
+    - canshu_wenjian : str
+    + jilu_lun(sunshi, zhunquelv)
+  }
+}
+
+package "隐私保护（PP）" {
+  class YinsiPeizhi {
+    - jizhi : str
+    - eps : float
+    - jiancai_yuzhi : float
+    - yusuan_shangxian : float
+    + jiazao_gengxin(gengxin) : gengxin
+  }
+
+  class YinsiYusuan {
+    - id : int
+    - renwu_id : int
+    - lunci_hao : int
+    - benlun_eps : float
+    - leiji_eps : float
+    - jilu_shijian : datetime
+    + jilu_yusuan(renwu_id, lunci, eps) : float
+    + jiancha_yusuan(renwu_id, eps) : bool
+  }
+}
+
+XunlianRenwu "1" o-- "1..*" CanjiaFang : 聚合 >
+XunlianRenwu "1" *-- "0..*" LunciJilu : 组合 >
+CanjiaFang "0..*" -- "1" Shujuji : 使用 >
+XunlianRenwu "1" *-- "1" YinsiPeizhi : 组合 >
+XunlianRenwu "1" *-- "0..*" YinsiYusuan : 记录 >
+
+@enduml

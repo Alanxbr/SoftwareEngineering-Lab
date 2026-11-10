@@ -1,0 +1,95 @@
+@startuml
+skinparam shadowing false
+skinparam defaultFontName Microsoft YaHei
+skinparam sequenceMessageAlign left
+skinparam responseMessageBelowArrow true
+skinparam participant {
+  BackgroundColor #FAFAFA
+  BorderColor #333333
+  FontSize 11
+}
+skinparam actor {
+  BackgroundColor #FAFAFA
+  BorderColor #333333
+  FontSize 11
+}
+skinparam database {
+  BackgroundColor #FAFAFA
+  BorderColor #333333
+  FontSize 11
+}
+skinparam arrow {
+  Color #333333
+  FontSize 10
+}
+skinparam sequenceGroup {
+  BorderColor #666666
+}
+
+title 图 5-5 联邦训练任务执行时序图
+
+actor "数据使用方" as U
+participant "前端页面" as FE
+participant "接口层\n（FastAPI）" as API
+participant "训练服务\nXunlianFuwu" as FT
+participant "数据服务\nShujuFuwu" as DM
+participant "隐私服务\nYinsiFuwu" as PP
+participant "Flower\n协调服务" as FL
+participant "参与方客户端" as CL
+database "SQLite\n数据库" as DB
+
+U -> FE : 填写任务配置（模型、轮次、参与方、隐私参数）
+FE -> API : POST /api/tasks
+API -> API : 校验 Token 与请求参数
+API -> FT : chuangjian_renwu(peizhi)
+FT -> DM : 查询参与方数据集元信息
+DM -> DB : 查询 shujuji
+DB --> DM : 数据集记录
+DM --> FT : 数据集可用
+FT -> DB : 写入 xunlian_renwu（状态=待启动）
+FT --> API : 任务编号
+API --> FE : {code:0, data:{renwu_id}}
+FE --> U : 显示创建成功
+
+U -> FE : 点击启动训练
+FE -> API : POST /api/tasks/{id}/start
+API -> FT : qidong_xunlian(renwu_id)
+FT -> PP : jiancha_yusuan(renwu_id, eps)
+PP -> DB : 查询累计隐私消耗
+DB --> PP : 累计 ε
+PP --> FT : 是否允许继续
+
+alt 预算不足
+  FT --> API : 返回预算超限
+  API --> FE : {code:4001, message:"隐私预算不足"}
+  FE --> U : 提示预算不足
+else 预算充足
+  FT -> FL : 启动训练（全局参数、训练配置、隐私参数）
+  loop 每一轮训练
+    FL -> CL : 下发全局模型参数与隐私参数
+    CL -> CL : 用本地数据训练
+    CL -> PP : jiazao_gengxin(模型更新, 隐私配置)
+    PP --> CL : 裁剪并加噪后的更新
+    CL --> FL : 上传加噪更新、样本数、损失
+    FL -> FT : 汇总本轮各参与方更新
+    FT -> FT : juhe_canshu(按样本数加权平均)
+    FT -> PP : jilu_yusuan(renwu_id, lunci, eps)
+    PP -> DB : 写入 yinsi_yusuan
+    FT -> DB : 写入 lunci_jilu 与参数文件路径
+    FT -> DB : 更新 renwu_canjiafang 状态
+  end
+  FT -> DB : 更新 xunlian_renwu（状态=已完成）
+  FT --> API : 训练完成
+  API --> FE : 最新任务状态
+end
+
+U -> FE : 打开结果与隐私页
+FE -> API : GET /api/tasks/{id}/curves
+API -> FT : chaxun_zhuangtai(renwu_id)
+FT -> DB : 查询 lunci_jilu
+DB --> FT : 每轮损失与准确率
+FT --> API : 曲线数据
+API --> FE : {code:0, data:[...]}
+FE --> U : 展示训练曲线
+
+@enduml

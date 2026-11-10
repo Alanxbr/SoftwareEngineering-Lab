@@ -1,0 +1,101 @@
+digraph er {
+  graph [rankdir=LR, splines=spline, nodesep=0.5, ranksep=0.9,
+         fontname="Microsoft YaHei", fontsize=13, pad=0.3, charset="UTF-8",
+         label=<<B>图 5-7 隐私计算数据共享平台 E-R 图</B>>, labelloc=t, labeljust=c];
+  node  [shape=plaintext, fontname="Microsoft YaHei", fontsize=10];
+  edge  [fontname="Microsoft YaHei", fontsize=10, color="#333333", penwidth=1.1,
+         arrowsize=0.8];
+
+  yonghu [label=<
+    <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="4" CELLPADDING="3" COLOR="#333333">
+      <TR><TD COLSPAN="2" BGCOLOR="#E6E6E6"><B>yonghu 用户</B></TD></TR>
+      <TR><TD ALIGN="LEFT"><B>PK</B></TD><TD ALIGN="LEFT">id</TD></TR>
+      <TR><TD></TD><TD ALIGN="LEFT">yonghuming（唯一）</TD></TR>
+      <TR><TD></TD><TD ALIGN="LEFT">mima_hash</TD></TR>
+      <TR><TD></TD><TD ALIGN="LEFT">youxiang</TD></TR>
+      <TR><TD></TD><TD ALIGN="LEFT">jiaose</TD></TR>
+      <TR><TD></TD><TD ALIGN="LEFT">zhuangtai</TD></TR>
+      <TR><TD></TD><TD ALIGN="LEFT">chuangjian_shijian</TD></TR>
+    </TABLE>>];
+
+  shujuji [label=<
+    <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="4" CELLPADDING="3" COLOR="#333333">
+      <TR><TD COLSPAN="2" BGCOLOR="#E6E6E6"><B>shujuji 数据集</B></TD></TR>
+      <TR><TD ALIGN="LEFT"><B>PK</B></TD><TD ALIGN="LEFT">id</TD></TR>
+      <TR><TD ALIGN="LEFT"><B>FK</B></TD><TD ALIGN="LEFT">tigongfang_id → yonghu.id</TD></TR>
+      <TR><TD></TD><TD ALIGN="LEFT">mingcheng（唯一）</TD></TR>
+      <TR><TD></TD><TD ALIGN="LEFT">geshi</TD></TR>
+      <TR><TD></TD><TD ALIGN="LEFT">daxiao</TD></TR>
+      <TR><TD></TD><TD ALIGN="LEFT">yangben_shu</TD></TR>
+      <TR><TD></TD><TD ALIGN="LEFT">tuomin_guize</TD></TR>
+      <TR><TD></TD><TD ALIGN="LEFT">zhuangtai</TD></TR>
+    </TABLE>>];
+
+  xunlian_renwu [label=<
+    <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="4" CELLPADDING="3" COLOR="#333333">
+      <TR><TD COLSPAN="2" BGCOLOR="#E6E6E6"><B>xunlian_renwu 训练任务</B></TD></TR>
+      <TR><TD ALIGN="LEFT"><B>PK</B></TD><TD ALIGN="LEFT">id</TD></TR>
+      <TR><TD ALIGN="LEFT"><B>FK</B></TD><TD ALIGN="LEFT">chuangjianzhe_id → yonghu.id</TD></TR>
+      <TR><TD></TD><TD ALIGN="LEFT">mingcheng</TD></TR>
+      <TR><TD></TD><TD ALIGN="LEFT">moxing_leixing</TD></TR>
+      <TR><TD></TD><TD ALIGN="LEFT">lunshu</TD></TR>
+      <TR><TD></TD><TD ALIGN="LEFT">piliang_daxiao</TD></TR>
+      <TR><TD></TD><TD ALIGN="LEFT">xuexilv</TD></TR>
+      <TR><TD></TD><TD ALIGN="LEFT">zhuangtai</TD></TR>
+    </TABLE>>];
+
+  renwu_canjiafang [label=<
+    <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="4" CELLPADDING="3" COLOR="#333333">
+      <TR><TD COLSPAN="2" BGCOLOR="#E6E6E6"><B>renwu_canjiafang 任务参与方</B></TD></TR>
+      <TR><TD ALIGN="LEFT"><B>PK</B></TD><TD ALIGN="LEFT">id</TD></TR>
+      <TR><TD ALIGN="LEFT"><B>FK</B></TD><TD ALIGN="LEFT">renwu_id → xunlian_renwu.id</TD></TR>
+      <TR><TD ALIGN="LEFT"><B>FK</B></TD><TD ALIGN="LEFT">yonghu_id → yonghu.id</TD></TR>
+      <TR><TD ALIGN="LEFT"><B>FK</B></TD><TD ALIGN="LEFT">shujuji_id → shujuji.id</TD></TR>
+      <TR><TD></TD><TD ALIGN="LEFT">yangben_shu</TD></TR>
+      <TR><TD></TD><TD ALIGN="LEFT">zhuangtai</TD></TR>
+    </TABLE>>];
+
+  lunci_jilu [label=<
+    <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="4" CELLPADDING="3" COLOR="#333333">
+      <TR><TD COLSPAN="2" BGCOLOR="#E6E6E6"><B>lunci_jilu 轮次记录</B></TD></TR>
+      <TR><TD ALIGN="LEFT"><B>PK</B></TD><TD ALIGN="LEFT">id</TD></TR>
+      <TR><TD ALIGN="LEFT"><B>FK</B></TD><TD ALIGN="LEFT">renwu_id → xunlian_renwu.id</TD></TR>
+      <TR><TD></TD><TD ALIGN="LEFT">lunci_hao</TD></TR>
+      <TR><TD></TD><TD ALIGN="LEFT">sunshi</TD></TR>
+      <TR><TD></TD><TD ALIGN="LEFT">zhunquelv</TD></TR>
+      <TR><TD></TD><TD ALIGN="LEFT">haoshi</TD></TR>
+      <TR><TD></TD><TD ALIGN="LEFT">canshu_wenjian</TD></TR>
+    </TABLE>>];
+
+  yinsi_yusuan [label=<
+    <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="4" CELLPADDING="3" COLOR="#333333">
+      <TR><TD COLSPAN="2" BGCOLOR="#E6E6E6"><B>yinsi_yusuan 隐私预算</B></TD></TR>
+      <TR><TD ALIGN="LEFT"><B>PK</B></TD><TD ALIGN="LEFT">id</TD></TR>
+      <TR><TD ALIGN="LEFT"><B>FK</B></TD><TD ALIGN="LEFT">renwu_id → xunlian_renwu.id</TD></TR>
+      <TR><TD></TD><TD ALIGN="LEFT">lunci_hao</TD></TR>
+      <TR><TD></TD><TD ALIGN="LEFT">benlun_eps</TD></TR>
+      <TR><TD></TD><TD ALIGN="LEFT">leiji_eps</TD></TR>
+      <TR><TD></TD><TD ALIGN="LEFT">jilu_shijian</TD></TR>
+    </TABLE>>];
+
+  xitong_rizhi [label=<
+    <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="4" CELLPADDING="3" COLOR="#333333">
+      <TR><TD COLSPAN="2" BGCOLOR="#E6E6E6"><B>xitong_rizhi 系统日志</B></TD></TR>
+      <TR><TD ALIGN="LEFT"><B>PK</B></TD><TD ALIGN="LEFT">id</TD></TR>
+      <TR><TD ALIGN="LEFT"><B>FK</B></TD><TD ALIGN="LEFT">caozuozhe_id → yonghu.id</TD></TR>
+      <TR><TD></TD><TD ALIGN="LEFT">caozuo_leixing</TD></TR>
+      <TR><TD></TD><TD ALIGN="LEFT">duixiang_leixing</TD></TR>
+      <TR><TD></TD><TD ALIGN="LEFT">duixiang_id</TD></TR>
+      <TR><TD></TD><TD ALIGN="LEFT">jieguo</TD></TR>
+      <TR><TD></TD><TD ALIGN="LEFT">rizhi_shijian</TD></TR>
+    </TABLE>>];
+
+  yonghu -> shujuji [label="1 : N\n登记"];
+  yonghu -> xunlian_renwu [label="1 : N\n创建"];
+  yonghu -> renwu_canjiafang [label="1 : N\n参与"];
+  shujuji -> renwu_canjiafang [label="1 : N\n授权使用"];
+  xunlian_renwu -> renwu_canjiafang [label="1 : N\n包含"];
+  xunlian_renwu -> lunci_jilu [label="1 : N\n产生"];
+  xunlian_renwu -> yinsi_yusuan [label="1 : N\n记录"];
+  yonghu -> xitong_rizhi [label="1 : N\n产生"];
+}

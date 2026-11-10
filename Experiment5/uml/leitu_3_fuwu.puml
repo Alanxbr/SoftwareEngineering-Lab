@@ -1,0 +1,79 @@
+@startuml
+skinparam shadowing false
+skinparam defaultFontName Microsoft YaHei
+skinparam classAttributeIconSize 0
+skinparam nodesep 40
+skinparam ranksep 45
+skinparam class {
+  BackgroundColor #FAFAFA
+  BorderColor #333333
+  FontSize 12
+  AttributeFontSize 10
+  HeaderFontSize 12
+}
+skinparam package {
+  BorderColor #666666
+  BackgroundColor #FCFCFC
+  FontSize 12
+}
+hide circle
+hide empty members
+
+title 图 5-3 业务服务层类图
+
+package "业务逻辑层" {
+  abstract class FuwuJichu {
+    # rizhi : RizhiZujian
+    + jiancha_quanxian(yonghu_id, gongneng) : bool
+    + jilu_rizhi(leixing, duixiang, jieguo)
+  }
+
+  class YonghuFuwu {
+    + zhuce(yonghu) : int
+    + denglu(yonghuming, mima) : str
+  }
+
+  class ShujuFuwu {
+    + dengji_shujuji(shujuji) : int
+    + jiaoyan_geshi(ziduan) : list
+    + tuomin_ziduan(jilu, guize) : list
+  }
+
+  class XunlianFuwu {
+    + chuangjian_renwu(peizhi) : int
+    + qidong_xunlian(renwu_id)
+    + juhe_canshu(gengxin_liebiao)
+    + chaxun_zhuangtai(renwu_id) : zhuangtai
+  }
+
+  class YinsiFuwu {
+    + jiazao_gengxin(gengxin, peizhi)
+    + jilu_yusuan(renwu_id, lunci, eps) : float
+    + jiancha_yusuan(renwu_id, eps) : bool
+  }
+
+  class JieguoFuwu {
+    + chaxun_quxian(renwu_id) : list
+    + chaxun_yinhao(renwu_id) : list
+  }
+
+  class GuanliFuwu {
+    + liechu_yonghu(ye, guanjianzi) : list
+    + liechu_renwu(ye, zhuangtai) : list
+    + chaxun_rizhi(tiaojian) : list
+  }
+}
+
+class RizhiZujian {
+  + xie_rizhi(jilu)
+}
+
+FuwuJichu <|-- YonghuFuwu
+FuwuJichu <|-- ShujuFuwu
+FuwuJichu <|-- XunlianFuwu
+FuwuJichu <|-- YinsiFuwu
+FuwuJichu <|-- JieguoFuwu
+FuwuJichu <|-- GuanliFuwu
+FuwuJichu ..> RizhiZujian : 使用 >
+
+@enduml
