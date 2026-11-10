@@ -1,0 +1,52 @@
+digraph mokuai_yilai {
+    rankdir = TB;
+    graph [fontname = "Microsoft YaHei", fontsize = 11, nodesep = 0.5, ranksep = 0.6];
+    node [fontname = "Microsoft YaHei", fontsize = 10, shape = box, style = "rounded,filled",
+          fillcolor = "#F5F5F5", color = "#555555", penwidth = 1.1];
+    edge [fontname = "Microsoft YaHei", fontsize = 9, color = "#444444", arrowsize = 0.7];
+
+    subgraph cluster_biaoxian {
+        label = "接口层";
+        fontsize = 11;
+        color = "#999999";
+        style = "rounded,dashed";
+        jiekou [label = "FastAPI 路由\n参数校验 / 认证 / 统一响应", fillcolor = "#DDEBF7"];
+    }
+
+    subgraph cluster_yewu {
+        label = "业务层（本次实现核心模块）";
+        fontsize = 11;
+        color = "#999999";
+        style = "rounded,dashed";
+        xunlian [label = "XunlianFuwu\n联邦训练（核心）", fillcolor = "#FCE4D6"];
+        shuju [label = "ShujuFuwu\n数据管理", fillcolor = "#E2EFDA"];
+        yinsi [label = "YinsiFuwu\n隐私保护", fillcolor = "#E2EFDA"];
+    }
+
+    subgraph cluster_gonggong {
+        label = "公共组件";
+        fontsize = 11;
+        color = "#999999";
+        style = "rounded,dashed";
+        fanhui [label = "FanhuiJieguo\n统一返回", fillcolor = "#FFF2CC"];
+        rizhi [label = "RizhiZujian\n操作日志", fillcolor = "#FFF2CC"];
+    }
+
+    subgraph cluster_cunchu {
+        label = "数据访问层";
+        fontsize = 11;
+        color = "#999999";
+        style = "rounded,dashed";
+        dao [label = "RenwuDao / CanjiaFangDao\nLunciDao / YusuanDao", fillcolor = "#E2EFDA"];
+        shujuku [label = "Shujuku\nSQLite 连接 / 建表", fillcolor = "#E2EFDA"];
+    }
+
+    jiekou -> xunlian [label = "创建 / 启动 / 执行轮次"];
+    jiekou -> shuju [style = dashed, label = "数据集接口"];
+    jiekou -> yinsi [style = dashed];
+
+    xunlian -> shuju [label = "chaxun_shujuji"];
+    xunlian -> yinsi [label = "jiancha_yusuan / jiazao_gengxin / jilu_yusuan"];
+    xunlian -> dao [label = "读写任务与轮次记录"];
+    dao -> shujuku [label = "获取连接"];
+}
