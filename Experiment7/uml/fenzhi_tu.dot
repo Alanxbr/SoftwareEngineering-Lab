@@ -1,0 +1,24 @@
+digraph fenzhi {
+  graph [rankdir=LR, fontname="Microsoft YaHei", bgcolor="white", nodesep=0.35, ranksep=0.55];
+  node [shape=box, style="rounded,filled", fontname="Microsoft YaHei", fontsize=11, color="#5b6b84", fillcolor="#eef3fb"];
+  edge [fontname="Microsoft YaHei", fontsize=9, color="#5b6b84"];
+
+  master [label="master\n47964e8", fillcolor="#dbe9ff"];
+  dev [label="dev\n(集成分支)", fillcolor="#e8f5e9"];
+  hd [label="feature/pingtai-houduan\n5 个提交", fillcolor="#fff4e0"];
+  qd [label="feature/pingtai-qianduan\n2 个提交", fillcolor="#fff4e0"];
+  wa [label="feature/wendang-jia\n1 个提交", fillcolor="#f3e8ff"];
+  wb [label="feature/wendang-yi\n1 个提交", fillcolor="#f3e8ff"];
+
+  c0 [label="c8ad944\n实验6 完成", shape=ellipse, fillcolor="#f5f5f5"];
+  c0 -> dev [label=" 8f6617a"];
+  dev -> hd [label=" 拉出"];
+  dev -> qd [label=" 拉出"];
+  hd -> dev [label="merge 6bb91b1"];
+  qd -> dev [label="merge d19e6d6"];
+  dev -> wa [label=" 拉出"];
+  dev -> wb [label=" 拉出"];
+  wa -> dev [label="merge 0489dd8"];
+  wb -> dev [label="merge dbb1190\n(冲突已解决)"];
+  dev -> master [label="merge 47964e8"];
+}
