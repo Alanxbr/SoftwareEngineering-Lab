@@ -60,6 +60,13 @@ def jiagong_gaowei(gengxin: Sequence[float], yinsipi: float,
     return (xiangliang + np.asarray(zaosheng)).tolist()
 
 
+def ke_xunlian_lunshu(yusuan_shangxian: float, yinsipi: float) -> int:
+    """按预算上限估算最多可训练轮数（向下取整）。"""
+    if yinsipi <= 0:
+        raise YewuCuowu(CUOWU_CANSHU, '隐私预算 ε 必须大于 0')
+    return int(math.floor(float(yusuan_shangxian) / float(yinsipi) + 1e-9))
+
+
 def jiancha_yusuan(leiji_eps: float, benlun_eps: float, shangxian: float) -> float:
     """检查剩余预算，返回加入本轮后的累计值。"""
     if leiji_eps + benlun_eps > shangxian + 1e-9:
@@ -82,4 +89,6 @@ def yusuan_zonglan(renwu: dict, leiji: float) -> dict:
         'shangxian': shangxian,
         'shengyu': round(max(0.0, shangxian - leiji), 10),
         'shiyong_lv': round(min(1.0, leiji / shangxian) if shangxian else 0.0, 4),
+        'ke_xunlian_lunshu': ke_xunlian_lunshu(
+            shangxian, float(renwu['yinsipi'])),
     }
