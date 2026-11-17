@@ -396,6 +396,11 @@ def xie_rizhi(caozuozhe_id: int | None, caozuo_leixing: str, duixiang_leixing: s
 def rizhi_liechu(leixing: str = '', jieguo: str = '', yonghuming: str = '',
                  kaishi: str = '', jieshu: str = '', ye: int = 1,
                  meiye: int = 30) -> dict:
+    # 前端只传日期（YYYY-MM-DD）时按整天补齐，避免结束日期漏掉当天记录
+    if len(kaishi) == 10:
+        kaishi += ' 00:00:00'
+    if len(jieshu) == 10:
+        jieshu += ' 23:59:59'
     tiaojian, canshu = [], []
     if leixing:
         tiaojian.append('z.caozuo_leixing = ?')
