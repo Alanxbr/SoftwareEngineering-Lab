@@ -112,6 +112,46 @@ class ChaxunTest(unittest.TestCase):
         self.assertAlmostEqual(yinsi['leiji_eps'], 2.5)
         self.assertAlmostEqual(yinsi['shengyu'], 0.5)
 
+    def test_zong_yusuan_buzu_pao_4005(self):
+        with self.assertRaises(YewuCuowu) as qingjing:
+            xunlian_fuwu.chuangjian(
+                _yonghu('shiyong1'),
+                _renwu(lunshu=2, yinsipi=0.5, yusuan_shangxian=0.6),
+            )
+        self.assertEqual(qingjing.exception.cuowu_ma, 4005)
+
+    def test_tingyong_shujuji_hou_qidong_pao_4003(self):
+        shuju = dao.shujuji_an_id(_shujuji_id('交通流量特征集'))
+        renwu = xunlian_fuwu.chuangjian(
+            _yonghu('shiyong1'),
+            _renwu(canjia=[CanjiafangRuku(shujuji_id=shuju['id'])]),
+        )
+        dao.shujuji_gengxin_zhuangtai(shuju['id'], 'yitingyong',
+                                     shuju['jiaoyan_jielun'])
+        try:
+            with self.assertRaises(YewuCuowu) as qingjing:
+                xunlian_fuwu.qidong(_yonghu('shiyong1'), renwu['id'])
+            self.assertEqual(qingjing.exception.cuowu_ma, 4003)
+        finally:
+            dao.shujuji_gengxin_zhuangtai(shuju['id'], 'yijiaoyan',
+                                         shuju['jiaoyan_jielun'])
+
+    def test_quxiao_hou_buzai_gaiwei_yiwancheng(self):
+        import time
+        renwu = xunlian_fuwu.chuangjian(
+            _yonghu('shiyong1'),
+            _renwu(mingcheng='取消竞态任务', lunshu=8, yusuan_shangxian=4.0),
+        )
+        xunlian_fuwu.qidong(_yonghu('shiyong1'), renwu['id'])
+        for _ in range(100):
+            if int(dao.renwu_an_id(renwu['id'])['dangqian_lunci']) >= 1:
+                break
+            time.sleep(0.02)
+        self.assertTrue(dao.renwu_tiaojian_zhuangtai(
+            renwu['id'], 'xunlianzhong', 'yiquxiao'))
+        time.sleep(2.0)
+        self.assertEqual(dao.renwu_an_id(renwu['id'])['zhuangtai'], 'yiquxiao')
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -103,6 +103,14 @@ class ZhuangtaiTest(unittest.TestCase):
                 _tigong(), self.shuju['id'], 'suibian')
         self.assertEqual(qingjing.exception.cuowu_ma, 4005)
 
+    def test_shiyongfang_kan_budao_benzhi_lujing(self):
+        jieguo = shuju_fuwu.qu(
+            dao.yonghu_an_ming('shiyong1'), self.shuju['id'])
+        self.assertNotIn('benzhi_lujing', jieguo)
+        self.assertNotIn('tuomin_guize', jieguo)
+        ziji = shuju_fuwu.qu(_tigong(), self.shuju['id'])
+        self.assertIn('benzhi_lujing', ziji)
+
 
 if __name__ == '__main__':
     unittest.main()

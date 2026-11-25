@@ -82,6 +82,19 @@ class ZhenshiMoshiTest(unittest.TestCase):
             time.sleep(0.1)
         self.assertEqual(renwu['zhuangtai'], 'yiwancheng')
         self.assertEqual(len(dao.lunci_liechu(self.renwu_id)), 1)
+        # 服务端必须自己加噪：入库的更新不能等于客户端上传的裁剪值
+        gengxin = dao.gengxin_liechu(self.renwu_id, 1)
+        self.assertEqual(len(gengxin), 2)
+        for xiang in gengxin:
+            self.assertNotAlmostEqual(xiang['gengxin'][0], 0.01, places=6)
+
+    def test_07_yangben_shu_chaoshangxian_pao_cuowu(self):
+        from pydantic import ValidationError
+        with self.assertRaises(ValidationError):
+            KehuduanGengxinRuku(
+                lunci_hao=1, gengxin=[0.0] * WEIDU,
+                yangben_shu=10 ** 30,
+            )
 
     def test_05_yijieshu_hou_tijiao_pao_4004(self):
         with self.assertRaises(YewuCuowu) as qingjing:
