@@ -1,7 +1,7 @@
 digraph er {
   graph [rankdir=LR, splines=spline, nodesep=0.5, ranksep=0.9,
          fontname="Microsoft YaHei", fontsize=13, pad=0.3, charset="UTF-8",
-         label=<<B>图 5-7 隐私计算数据共享平台 E-R 图</B>>, labelloc=t, labeljust=c];
+         ];
   node  [shape=plaintext, fontname="Microsoft YaHei", fontsize=10];
   edge  [fontname="Microsoft YaHei", fontsize=10, color="#333333", penwidth=1.1,
          arrowsize=0.8];
@@ -111,4 +111,6 @@ digraph er {
   xunlian_renwu -> lunci_jilu [label="1 : N\n产生"];
   xunlian_renwu -> yinsi_yusuan [label="1 : N\n记录"];
   yonghu -> xitong_rizhi [label="1 : N\n产生"];
+  xunlian_renwu -> renwu_gengxin [label="1 : N 暂存"];
+  yonghu -> renwu_gengxin [label="1 : N 提交"];
 }
