@@ -17,8 +17,15 @@ from backend.services import yinsi_fuwu
 
 _ZIDONG = threading.Lock()
 _YUNXING: set[int] = set()
+ZUIDA_BINGFA = 3
 PINGGU_ZHONGZI = 2024103365
 CHUSHI_ZHONGZI = 8800
+
+
+def bingfa_shu() -> int:
+    """当前正在训练的线程数。"""
+    with _ZIDONG:
+        return len(_YUNXING)
 
 
 def chushi_canshu(renwu_id: int) -> list[float]:
@@ -27,17 +34,18 @@ def chushi_canshu(renwu_id: int) -> list[float]:
     return moxing.qu_canshu().tolist()
 
 
-def qidong(renwu_id: int) -> None:
-    """启动后台训练线程。"""
+def qidong(renwu_id: int) -> bool:
+    """启动后台训练线程；已在运行或达到并发上限时返回 False。"""
     with _ZIDONG:
-        if renwu_id in _YUNXING:
-            return
+        if renwu_id in _YUNXING or len(_YUNXING) >= ZUIDA_BINGFA:
+            return False
         _YUNXING.add(renwu_id)
     xiancheng = threading.Thread(
         target=_yunxing_baohu, args=(renwu_id,),
         name=f'xunlian-{renwu_id}', daemon=True,
     )
     xiancheng.start()
+    return True
 
 
 def _yunxing_baohu(renwu_id: int) -> None:
@@ -63,7 +71,7 @@ def _yunxing(renwu_id: int) -> None:
         for lunci in range(1, int(renwu['lunshu']) + 1):
             dangqian = dao.renwu_an_id(renwu_id)
             if not dangqian or dangqian['zhuangtai'] != 'xunlianzhong':
-                _rizhi(renwu_id, '训练终止', '任务状态已变化，协调器退出')
+                _rizhi(renwu_id, '训练终止', '任务状态已变化，协调器退出', 'shibai')
                 return
             leiji = dao.yusuan_leiji(renwu_id)
             yinsi_fuwu.jiancha_yusuan(leiji, float(renwu['yinsipi']),
@@ -73,6 +81,11 @@ def _yunxing(renwu_id: int) -> None:
             dao.canjiafang_gengxin_zhuangtai(renwu_id, 'xunlianzhong')
             kaishi = time.time()
             _zhixing_benlun(renwu, lunci, cans, canjia)
+            # 真实模式等待期间可能已被管理员取消，不能再写本轮数据
+            dangqian = dao.renwu_an_id(renwu_id)
+            if not dangqian or dangqian['zhuangtai'] != 'xunlianzhong':
+                _rizhi(renwu_id, '训练终止', '本轮等待期间任务被取消', 'shibai')
+                return
             gengxin = dao.gengxin_liechu(renwu_id, lunci)
             if len(gengxin) < len(canjia):
                 queshi = [c['yonghuming'] for c in canjia
@@ -80,10 +93,15 @@ def _yunxing(renwu_id: int) -> None:
                 dao.canjiafang_gengxin_zhuangtai(renwu_id, 'diaoxian')
                 _shibai(renwu_id, f'第 {lunci} 轮缺少参与方更新：{"、".join(queshi)}')
                 return
-            cans = _juhe(cans, gengxin, canjia, float(renwu['jiancai_yuzhi']))
+            cans = _juhe(cans, gengxin, canjia)
             sunshi, zhunquelv = _pinggu(cans)
             haoshi = round(time.time() - kaishi, 3)
             wenjian = _baocun_canshu(renwu_id, lunci, cans)
+            # 落库前再次确认任务仍在训练中，避免取消后被本轮结果覆盖
+            dangqian = dao.renwu_an_id(renwu_id)
+            if not dangqian or dangqian['zhuangtai'] != 'xunlianzhong':
+                _rizhi(renwu_id, '训练终止', '落库前任务被取消，本轮结果丢弃', 'shibai')
+                return
             dao.charu_lunci(renwu_id, lunci, sunshi, zhunquelv, haoshi,
                             wenjian, len(gengxin))
             leiji_xin = yinsi_fuwu.jiancha_yusuan(
@@ -101,9 +119,11 @@ def _yunxing(renwu_id: int) -> None:
         else:
             _shibai(renwu_id, f'训练失败：{str(cuowu)[:180]}')
         return
-    dao.renwu_gengxin_zhuangtai(renwu_id, 'yiwancheng')
-    _rizhi(renwu_id, '训练完成',
-           f'共 {renwu["lunshu"]} 轮，累计 ε {dao.yusuan_leiji(renwu_id):.2f}')
+    if dao.renwu_tiaojian_zhuangtai(renwu_id, 'xunlianzhong', 'yiwancheng'):
+        _rizhi(renwu_id, '训练完成',
+               f'共 {renwu["lunshu"]} 轮，累计 ε {dao.yusuan_leiji(renwu_id):.2f}')
+    else:
+        _rizhi(renwu_id, '训练终止', '完成前任务状态已变化，未覆盖终态', 'shibai')
 
 
 def _zhixing_benlun(renwu: dict, lunci: int, cans: list[float],
@@ -134,8 +154,12 @@ def _zhixing_benlun(renwu: dict, lunci: int, cans: list[float],
 
 
 def _juhe(cans: list[float], gengxin: list[dict],
-          canjia: list[dict], jiancai_yuzhi: float) -> list[float]:
-    """按服务端记录的样本数加权聚合模型更新。"""
+          canjia: list[dict]) -> list[float]:
+    """按服务端记录的样本数加权聚合模型更新。
+
+    更新在入库前已经由服务端统一裁剪并加噪（真实模式）或由模拟器加噪，
+    这里不再二次裁剪，否则会把噪声幅度压回去，破坏隐私预算对应的噪声尺度。
+    """
     quanzhong = {int(c['yonghu_id']): int(c['yangben_shu']) for c in canjia}
     zong_yangben = sum(quanzhong.get(int(g['yonghu_id']), 0) for g in gengxin)
     if zong_yangben <= 0:
@@ -148,9 +172,8 @@ def _juhe(cans: list[float], gengxin: list[dict],
             raise ValueError(
                 f'参与方 {g.get("yonghuming", g["yonghu_id"])} 的更新维度为 '
                 f'{xiangliang.size}，应为 {weidu}')
-        # 服务端按任务自己的裁剪阈值再裁剪一次，防止客户端跳过或篡改阈值
-        xiangliang = np.asarray(
-            yinsi_fuwu.jiancai(xiangliang.tolist(), jiancai_yuzhi), dtype=float)
+        if not np.all(np.isfinite(xiangliang)):
+            raise ValueError(f'参与方 {g["yonghu_id"]} 的更新包含非法数值')
         leiji += xiangliang * quanzhong.get(int(g['yonghu_id']), 0)
     jieguo = np.asarray(cans, dtype=float) + leiji / zong_yangben
     return jieguo.tolist()
@@ -205,13 +228,15 @@ def _shibai(renwu_id: int, yuanyin: str) -> None:
     renwu = dao.renwu_an_id(renwu_id)
     if not renwu or renwu['zhuangtai'] in ('yiwancheng', 'yiquxiao'):
         return
-    dao.renwu_gengxin_zhuangtai(renwu_id, 'yichang', yuanyin)
+    if not dao.renwu_tiaojian_zhuangtai(renwu_id, 'xunlianzhong', 'yichang', yuanyin):
+        return
     dao.canjiafang_gengxin_zhuangtai(renwu_id, 'diaoxian')
-    _rizhi(renwu_id, '训练异常', yuanyin)
+    _rizhi(renwu_id, '训练异常', yuanyin, 'shibai')
 
 
-def _rizhi(renwu_id: int, dongzuo: str, xiangqing: str) -> None:
+def _rizhi(renwu_id: int, dongzuo: str, xiangqing: str,
+           jieguo: str = 'chenggong') -> None:
     renwu = dao.renwu_an_id(renwu_id)
     mingcheng = renwu['mingcheng'] if renwu else str(renwu_id)
-    dao.xie_rizhi(None, dongzuo, 'xunlian_renwu', renwu_id, 'chenggong',
+    dao.xie_rizhi(None, dongzuo, 'xunlian_renwu', renwu_id, jieguo,
                   f'{mingcheng}：{xiangqing}')

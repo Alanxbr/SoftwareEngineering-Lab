@@ -95,9 +95,9 @@ class GuanliRenwuRuku(BaseModel):
 
 
 class KehuduanGengxinRuku(BaseModel):
-    lunci_hao: int = Field(gt=0)
-    gengxin: list[float] = Field(min_length=1)
-    yangben_shu: int = Field(gt=0)
-    sunshi: float = Field(ge=0, default=0)
+    lunci_hao: int = Field(gt=0, le=1_000_000)
+    gengxin: list[float] = Field(min_length=1, max_length=100_000)
+    yangben_shu: int = Field(gt=0, le=100_000_000)
+    sunshi: float = Field(ge=0, le=1e12, default=0)
     zhunquelv: float = Field(ge=0, le=1, default=0)
-    haoshi: float = Field(ge=0, default=0)
+    haoshi: float = Field(ge=0, le=1e9, default=0)

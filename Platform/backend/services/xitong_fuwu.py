@@ -1,5 +1,6 @@
 """系统健康检查与平台信息。"""
 
+import logging
 from datetime import datetime
 
 from backend import dao
@@ -7,6 +8,7 @@ from backend.config import CANSHU_MULU, SHUJUKU_LUJING
 from backend.federated.moxing import MlpMoxing
 
 BANBEN = '1.0.0'
+rizhi = logging.getLogger('pingtai')
 
 
 def jiankang() -> dict:
@@ -16,8 +18,9 @@ def jiankang() -> dict:
         yonghu_shu = int(hang['n']) if hang else 0
         shujuku = 'zhengchang'
     except Exception as cuowu:
+        rizhi.exception('健康检查数据库访问失败')
         yonghu_shu = 0
-        shujuku = f'yichang: {str(cuowu)[:80]}'
+        shujuku = 'yichang'
     moxing = MlpMoxing()
     return {
         'zhuangtai': 'ok' if shujuku == 'zhengchang' else 'error',
@@ -52,8 +55,9 @@ def xinxi() -> dict:
             {'zhi': 'shiyongfang', 'mingcheng': '数据使用方'},
             {'zhi': 'guanliyuan', 'mingcheng': '系统管理员'},
         ],
+        # 只暴露逻辑名称，不返回绝对路径
         'lujing': {
-            'shujuku': str(SHUJUKU_LUJING),
-            'canshu': str(CANSHU_MULU),
+            'shujuku': SHUJUKU_LUJING.name,
+            'canshu': CANSHU_MULU.name,
         },
     }

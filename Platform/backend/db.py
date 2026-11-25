@@ -163,6 +163,12 @@ def zhixing(sql: str, canshu: tuple = ()) -> int:
         return int(youbiao.lastrowid or 0)
 
 
+def zhixing_hang(sql: str, canshu: tuple = ()) -> int:
+    """执行写操作并返回受影响行数，用于条件更新。"""
+    with lianjie() as lian:
+        return int(lian.execute(sql, canshu).rowcount)
+
+
 def chaxun_yi(sql: str, canshu: tuple = ()) -> dict | None:
     """查询单条记录。"""
     with lianjie() as lian:

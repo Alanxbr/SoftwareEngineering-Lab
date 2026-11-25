@@ -1,5 +1,7 @@
 """联邦训练任务：创建、启动、查询与结果读取。"""
 
+import os
+
 from backend import dao
 from backend.db import YewuCuowu
 from backend.deps import CUOWU_BU_CUNZAI, CUOWU_QUANXIAN
@@ -44,6 +46,10 @@ def chuangjian(yonghu: dict, shuru: RenwuRuku, ip: str = '') -> dict:
         if shuju['zhuangtai'] != 'yijiaoyan':
             raise YewuCuowu(CUOWU_CANJIAFANG,
                             f'数据集「{shuju["mingcheng"]}」未通过校验或已停用')
+        tigongfang = dao.yonghu_an_id(int(shuju['tigongfang_id']))
+        if not tigongfang or tigongfang['zhuangtai'] != 'zhengchang':
+            raise YewuCuowu(CUOWU_CANJIAFANG,
+                            f'数据提供方「{shuju.get("tigongfang_ming", "")}」账号已停用')
         if shuju['tigongfang_id'] in tigongzhe:
             raise YewuCuowu(CUOWU_CANJIAFANG, '同一数据提供方只能加入一次')
         tigongzhe.add(shuju['tigongfang_id'])
@@ -60,6 +66,10 @@ def chuangjian(yonghu: dict, shuru: RenwuRuku, ip: str = '') -> dict:
         raise YewuCuowu(CUOWU_CANJIAFANG, '至少需要一个参与方')
     if float(shuru.yinsipi) > float(shuru.yusuan_shangxian) + 1e-9:
         raise YewuCuowu(CUOWU_YUSUAN, '隐私预算上限不能小于单轮 ε')
+    if float(shuru.lunshu) * float(shuru.yinsipi) > float(shuru.yusuan_shangxian) + 1e-9:
+        raise YewuCuowu(CUOWU_CANSHU,
+                        f'预算上限不足以覆盖 {shuru.lunshu} 轮，'
+                        f'至少需要 {float(shuru.lunshu) * float(shuru.yinsipi):.2f}')
     renwu_id = dao.chuangjian_renwu(yonghu['id'], shuru.model_dump(), canjia)
     dao.xie_rizhi(yonghu['id'], '创建训练任务', 'xunlian_renwu', renwu_id,
                   'chenggong',
@@ -77,6 +87,9 @@ def xiangqing(yonghu: dict, renwu_id: int) -> dict:
     _kejian(yonghu, renwu)
     canjia = dao.canjiafang_an_renwu(renwu_id)
     lunci = dao.lunci_liechu(renwu_id)
+    for xiang in lunci:
+        if xiang.get('canshu_wenjian'):
+            xiang['canshu_wenjian'] = os.path.basename(xiang['canshu_wenjian'])
     leiji = dao.yusuan_leiji(renwu_id)
     renwu['canjiafang'] = canjia
     renwu['lunci'] = lunci
@@ -100,13 +113,29 @@ def qidong(yonghu: dict, renwu_id: int, ip: str = '') -> dict:
     canjia = dao.canjiafang_an_renwu(renwu_id)
     if not canjia:
         raise YewuCuowu(CUOWU_CANJIAFANG, '任务没有参与方')
+    for xiang in canjia:
+        if xiang['yonghu_zhuangtai'] != 'zhengchang':
+            raise YewuCuowu(CUOWU_CANJIAFANG,
+                            f'参与方「{xiang["yonghuming"]}」账号已停用')
+        if xiang['shujuji_zhuangtai'] != 'yijiaoyan':
+            raise YewuCuowu(CUOWU_CANJIAFANG,
+                            f'数据集「{xiang["shujuji_ming"]}」已停用或未通过校验')
     if float(renwu['yinsipi']) > float(renwu['yusuan_shangxian']) + 1e-9:
         raise YewuCuowu(CUOWU_YUSUAN, '隐私预算上限不足')
-    dao.renwu_gengxin_zhuangtai(renwu_id, 'xunlianzhong')
+    if (float(renwu['lunshu']) * float(renwu['yinsipi'])
+            > float(renwu['yusuan_shangxian']) + 1e-9):
+        raise YewuCuowu(CUOWU_YUSUAN, '预算上限不足以覆盖全部训练轮次')
+    if xietiao.bingfa_shu() >= xietiao.ZUIDA_BINGFA:
+        raise YewuCuowu(CUOWU_CANSHU,
+                        f'并发训练任务已达上限（{xietiao.ZUIDA_BINGFA} 个），请稍后再试')
+    if not dao.renwu_tiaojian_zhuangtai(renwu_id, 'daichufa', 'xunlianzhong'):
+        raise YewuCuowu(CUOWU_ZHUANGTAI, '任务已被其他请求启动', 409)
+    if not xietiao.qidong(renwu_id):
+        dao.renwu_tiaojian_zhuangtai(renwu_id, 'xunlianzhong', 'daichufa')
+        raise YewuCuowu(CUOWU_CANSHU, '训练线程启动失败，请稍后重试', 409)
     dao.xie_rizhi(yonghu['id'], '启动训练', 'xunlian_renwu', renwu_id,
                   'chenggong',
                   f'{renwu["mingcheng"]}，模式：{renwu["yunxing_moshi"]}', ip)
-    xietiao.qidong(renwu_id)
     return xiangqing(yonghu, renwu_id)
 
 

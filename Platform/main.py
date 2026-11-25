@@ -87,6 +87,16 @@ async def canshu_yichang(request: Request,
     )
 
 
+@app.exception_handler(Exception)
+async def weizhi_yichang(request: Request, cuowu: Exception) -> JSONResponse:
+    """未预期异常统一返回 500 信封，细节只写服务端日志。"""
+    rizhi.exception('未处理异常：%s %s', request.method, request.url.path)
+    return JSONResponse(
+        status_code=500,
+        content=xiangying.shibai(5000, '服务器内部错误'),
+    )
+
+
 for lu in (yonghu.router, shuju.router, xunlian.router, kehuduan.router,
            gongzuotai.router, xitong.router, guanli.router):
     app.include_router(lu)

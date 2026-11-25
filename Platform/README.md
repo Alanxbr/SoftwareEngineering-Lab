@@ -1,7 +1,7 @@
 # 隐私计算数据共享平台
 
 《软件工程实验》课程项目：面向多数据持有方的**联邦学习 + 差分隐私**数据共享平台。
-数据不出本地，各方只上传加噪后的模型更新，服务端按样本数加权聚合成全局模型。
+数据不出本地；模拟模式由本地模拟器加噪，真实模式由服务端统一裁剪并加噪，服务端再按样本数加权聚合成全局模型。
 
 本目录是平台的可运行实现：FastAPI 后端 + Vue 3 单页前端，对应实验4、实验5的架构设计与详细设计。
 
@@ -24,14 +24,14 @@ Platform/
 ├── requirements.txt
 ├── backend/
 │   ├── config.py           路径、JWT 密钥、超时与保留期配置
-│   ├── db.py               SQLite 连接、7 张表建表、业务异常
+│   ├── db.py               SQLite 连接、8 张表建表、业务异常
 │   ├── dao.py              全部 SQL 集中在这里
 │   ├── schemas.py          Pydantic 请求模型与字段校验
 │   ├── security.py         bcrypt 哈希与 JWT 签发解析
 │   ├── deps.py             登录态、角色校验、客户端 IP
 │   ├── xiangying.py        统一响应结构 {code, message, data}
 │   ├── seed.py             首次启动写入演示账号、数据集与训练任务（带版本升级）
-│   ├── routers/            HTTP 接口层（7 个路由模块，31 个接口）
+│   ├── routers/            HTTP 接口层（7 个路由模块，32 个接口）
 │   ├── services/           业务层（用户、数据、训练、隐私、管理、系统）
 │   └── federated/          联邦训练：模型、数据合成、本地模拟、协调器
 ├── frontend/               单页前端（由 FastAPI 直接托管）
@@ -47,6 +47,8 @@ Platform/
 ```
 
 ## 三、快速开始
+
+需要 Python 3.10 及以上（开发与测试使用 3.13.17）。
 
 ```bash
 cd Platform
@@ -86,6 +88,14 @@ python main.py
 
 ```bash
 PINGTAI_SHUJU=D:/tmp/pingtai_data python main.py
+```
+
+运行测试（需要 dev 依赖）：
+
+```bash
+pip install -r requirements-dev.txt
+python -m unittest discover -s tests -t .
+python tests/jicheng_ceshi.py
 ```
 
 ## 四、前端页面
@@ -142,7 +152,6 @@ PINGTAI_SHUJU=D:/tmp/pingtai_data python main.py
 | 错误码 | 含义 |
 | --- | --- |
 | 4001 | 隐私预算不足 |
-| 4002 | 数据集不存在或不可用 |
 | 4003 | 参与方缺失、重复或掉线 |
 | 4004 | 任务状态不允许当前操作 |
 | 4005 | 参数不合法 |
@@ -150,6 +159,7 @@ PINGTAI_SHUJU=D:/tmp/pingtai_data python main.py
 | 4010 | 未登录或凭证无效 |
 | 4030 | 当前角色无权执行该操作 |
 | 4040 | 资源不存在 |
+| 5000 | 服务器内部错误或数据库不可用 |
 
 业务异常由 `main.py` 的异常处理器统一转换；Pydantic 校验失败也返回 4005，
 前端不需要处理 422 的原始结构。前端把 `message` 直接作为提示条内容，

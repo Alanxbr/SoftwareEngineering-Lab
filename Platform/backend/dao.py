@@ -3,7 +3,7 @@
 import json
 from typing import Any
 
-from backend.db import chaxun_duo, chaxun_yi, lianjie, zhixing
+from backend.db import chaxun_duo, chaxun_yi, lianjie, zhixing, zhixing_hang
 
 XIANZAI = "datetime('now', 'localtime')"
 
@@ -227,6 +227,27 @@ def renwu_gengxin_zhuangtai(renwu_id: int, zhuangtai: str,
     zhixing('UPDATE xunlian_renwu SET zhuangtai = ? WHERE id = ?', (zhuangtai, renwu_id))
 
 
+def renwu_tiaojian_zhuangtai(renwu_id: int, yuan: str, xin: str,
+                             cuowu: str | None = None) -> bool:
+    """仅当任务处于 yuan 状态时迁移到 xin，返回是否迁移成功。
+
+    用于启动、完成和异常终态，避免管理员取消后后台线程覆盖终态。
+    """
+    if xin in ('yiwancheng', 'yichang', 'yiquxiao'):
+        hang = zhixing_hang(
+            f'UPDATE xunlian_renwu SET zhuangtai = ?, jieshu_shijian = {XIANZAI}, '
+            'cuowu_xiaoxi = COALESCE(?, cuowu_xiaoxi) '
+            'WHERE id = ? AND zhuangtai = ?',
+            (xin, cuowu, renwu_id, yuan),
+        )
+    else:
+        hang = zhixing_hang(
+            'UPDATE xunlian_renwu SET zhuangtai = ? WHERE id = ? AND zhuangtai = ?',
+            (xin, renwu_id, yuan),
+        )
+    return hang > 0
+
+
 def renwu_gengxin_lunci(renwu_id: int, lunci: int) -> None:
     zhixing('UPDATE xunlian_renwu SET dangqian_lunci = ? WHERE id = ?', (lunci, renwu_id))
 
@@ -249,7 +270,8 @@ def renwu_tongji(yonghu_id: int | None = None, jiaose: str = 'guanliyuan') -> di
 # ---------------------------------------------------------------- 参与方
 def canjiafang_an_renwu(renwu_id: int) -> list[dict]:
     return chaxun_duo(
-        'SELECT c.*, y.yonghuming, s.mingcheng AS shujuji_ming, s.geshi, '
+        'SELECT c.*, y.yonghuming, y.zhuangtai AS yonghu_zhuangtai, '
+        's.mingcheng AS shujuji_ming, s.geshi, '
         's.zhuangtai AS shujuji_zhuangtai '
         'FROM renwu_canjiafang c '
         'JOIN yonghu y ON y.id = c.yonghu_id '

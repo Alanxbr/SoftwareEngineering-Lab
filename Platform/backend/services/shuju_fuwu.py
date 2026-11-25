@@ -8,7 +8,6 @@ from backend.deps import CUOWU_BU_CUNZAI, CUOWU_QUANXIAN
 from backend.schemas import ShujuJiaoyanRuku, ShujujiRuku
 from backend.security import JIAOSE_GUANLIYUAN, JIAOSE_TIGONGFANG
 
-CUOWU_SHUJUJI = 4002
 CUOWU_CANSHU = 4005
 CUOWU_CHONGMING = 4006
 CUOWU_ZHUANGTAI = 4004
@@ -73,13 +72,23 @@ def dengji(yonghu: dict, shuru: ShujujiRuku, ip: str = '') -> dict:
     return dao.shujuji_an_id(shujuji_id)
 
 
+def _gongkai(shuju: dict) -> dict:
+    """非所有者只返回公开元数据，隐藏本地路径和脱敏规则。"""
+    gongkai = dict(shuju)
+    gongkai.pop('benzhi_lujing', None)
+    gongkai.pop('tuomin_guize', None)
+    return gongkai
+
+
 def liechu(yonghu: dict, ye: int = 1, meiye: int = 50) -> dict:
     """按角色返回可见数据集。"""
     if yonghu['jiaose'] == JIAOSE_GUANLIYUAN:
         return dao.shujuji_liechu(None, bao_tingyong=True, ye=ye, meiye=meiye)
     if yonghu['jiaose'] == JIAOSE_TIGONGFANG:
         return dao.shujuji_liechu(yonghu['id'], bao_tingyong=True, ye=ye, meiye=meiye)
-    return dao.shujuji_liechu(None, bao_tingyong=False, ye=ye, meiye=meiye)
+    jieguo = dao.shujuji_liechu(None, bao_tingyong=False, ye=ye, meiye=meiye)
+    jieguo['items'] = [_gongkai(x) for x in jieguo['items']]
+    return jieguo
 
 
 def qu(yonghu: dict, shujuji_id: int) -> dict:
@@ -92,7 +101,7 @@ def qu(yonghu: dict, shujuji_id: int) -> dict:
     if shuju['tigongfang_id'] == yonghu['id']:
         return shuju
     if shuju['zhuangtai'] == 'yijiaoyan':
-        return shuju
+        return _gongkai(shuju)
     raise YewuCuowu(CUOWU_QUANXIAN, '无权查看该数据集', 403)
 
 

@@ -15,6 +15,8 @@ JIAOSE_TIGONGFANG = 'tigongfang'
 JIAOSE_SHIYONGFANG = 'shiyongfang'
 JIAOSE_GUANLIYUAN = 'guanliyuan'
 HEFA_JIAOSE = (JIAOSE_TIGONGFANG, JIAOSE_SHIYONGFANG, JIAOSE_GUANLIYUAN)
+# 用户名不存在时也做一次 bcrypt 校验，避免用响应时间枚举账号
+JIASHI_HASH = '$2b$12$RT9yvyX41ZQlrTAyD0hTD.I1ICrkTnBdV9SpSWhIKEkZ6XavWzZJG'
 
 
 def _yuchuli_mima(mima: str) -> bytes:

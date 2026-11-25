@@ -5,6 +5,7 @@ from backend.db import YewuCuowu
 from backend.deps import CUOWU_QUANXIAN
 from backend.schemas import DengluRuku, ZhuceRuku
 from backend.security import (
+    JIASHI_HASH,
     chuangjian_token,
     jiayi_mima,
     jiancha_mima_qiangdu,
@@ -37,9 +38,14 @@ def zhuce(shuru: ZhuceRuku, ip: str = '') -> dict:
 def denglu(shuru: DengluRuku, ip: str = '') -> dict:
     """校验用户名密码并签发 JWT。"""
     yonghu = dao.yonghu_an_ming(shuru.yonghuming)
-    if not yonghu or not yanzheng_mima(shuru.mima, yonghu['mima_hash']):
-        dao.xie_rizhi(yonghu['id'] if yonghu else None, '用户登录', 'yonghu',
-                      yonghu['id'] if yonghu else None, 'shibai',
+    if not yonghu:
+        # 未知用户也执行一次 bcrypt，避免响应时间暴露用户名是否存在
+        yanzheng_mima(shuru.mima, JIASHI_HASH)
+        dao.xie_rizhi(None, '用户登录', 'yonghu', None, 'shibai',
+                      f'登录失败：{shuru.yonghuming}', ip)
+        raise YewuCuowu(4010, '用户名或密码错误', 401)
+    if not yanzheng_mima(shuru.mima, yonghu['mima_hash']):
+        dao.xie_rizhi(yonghu['id'], '用户登录', 'yonghu', yonghu['id'], 'shibai',
                       f'登录失败：{shuru.yonghuming}', ip)
         raise YewuCuowu(4010, '用户名或密码错误', 401)
     if yonghu['zhuangtai'] != 'zhengchang':

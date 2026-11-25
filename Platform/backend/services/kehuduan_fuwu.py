@@ -77,7 +77,10 @@ def tijiao(yonghu: dict, renwu_id: int, shuru: KehuduanGengxinRuku) -> dict:
                         f'模型更新维度应为 {moxing.weidu}，实际 {len(shuru.gengxin)}')
     if not all(math.isfinite(x) for x in shuru.gengxin):
         raise YewuCuowu(CUOWU_CANSHU, '模型更新包含非法数值')
-    gengxin = yinsi_fuwu.jiancai(shuru.gengxin, float(renwu['jiancai_yuzhi']))
+    # 客户端不可信：服务端统一裁剪并按本轮 ε 加噪，不能依赖客户端自报的加噪结果
+    gengxin = yinsi_fuwu.jiagong(
+        shuru.gengxin, float(renwu['yinsipi']), float(renwu['jiancai_yuzhi']),
+    )
     dao.baocun_gengxin(
         renwu_id, int(shuru.lunci_hao), yonghu['id'], gengxin,
         int(shuru.yangben_shu), float(shuru.sunshi), float(shuru.zhunquelv),
