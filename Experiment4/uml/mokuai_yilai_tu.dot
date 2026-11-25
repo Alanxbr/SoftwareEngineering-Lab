@@ -13,7 +13,7 @@ digraph yilai {
   PP  [label="隐私保护\nPP"];
   RV  [label="结果展示\nRV"];
   AD  [label="系统管理\nAD"];
-  FL  [label="Flower 运行时", shape=box, style="rounded,dashed", fillcolor="#F5F5F5"];
+  FL  [label="训练协调器（自研）", shape=box, style="rounded,dashed", fillcolor="#F5F5F5"];
 
   API -> UM;
   API -> DM;

@@ -78,6 +78,19 @@ digraph er {
       <TR><TD></TD><TD ALIGN="LEFT">jilu_shijian</TD></TR>
     </TABLE>>];
 
+  renwu_gengxin [label=<
+    <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="4" CELLPADDING="3" COLOR="#333333">
+      <TR><TD COLSPAN="2" BGCOLOR="#E6E6E6"><B>renwu_gengxin 参与方更新</B></TD></TR>
+      <TR><TD ALIGN="LEFT"><B>PK</B></TD><TD ALIGN="LEFT">id</TD></TR>
+      <TR><TD ALIGN="LEFT"><B>FK</B></TD><TD ALIGN="LEFT">renwu_id → xunlian_renwu.id</TD></TR>
+      <TR><TD ALIGN="LEFT"><B>FK</B></TD><TD ALIGN="LEFT">yonghu_id → yonghu.id</TD></TR>
+      <TR><TD></TD><TD ALIGN="LEFT">lunci_hao</TD></TR>
+      <TR><TD></TD><TD ALIGN="LEFT">gengxin（加噪后）</TD></TR>
+      <TR><TD></TD><TD ALIGN="LEFT">yangben_shu</TD></TR>
+      <TR><TD></TD><TD ALIGN="LEFT">sunshi / zhunquelv / haoshi</TD></TR>
+      <TR><TD></TD><TD ALIGN="LEFT">tijiao_shijian</TD></TR>
+    </TABLE>>];
+
   xitong_rizhi [label=<
     <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="4" CELLPADDING="3" COLOR="#333333">
       <TR><TD COLSPAN="2" BGCOLOR="#E6E6E6"><B>xitong_rizhi 系统日志</B></TD></TR>

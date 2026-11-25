@@ -34,12 +34,12 @@ participant "接口层\n（FastAPI）" as API
 participant "训练服务\nXunlianFuwu" as FT
 participant "数据服务\nShujuFuwu" as DM
 participant "隐私服务\nYinsiFuwu" as PP
-participant "Flower\n协调服务" as FL
+participant "训练协调器（自研）" as FL
 participant "参与方客户端" as CL
 database "SQLite\n数据库" as DB
 
 U -> FE : 填写任务配置（模型、轮次、参与方、隐私参数）
-FE -> API : POST /api/tasks
+FE -> API : POST /xunlian
 API -> API : 校验 Token 与请求参数
 API -> FT : chuangjian_renwu(peizhi)
 FT -> DM : 查询参与方数据集元信息
@@ -52,7 +52,7 @@ API --> FE : {code:0, data:{renwu_id}}
 FE --> U : 显示创建成功
 
 U -> FE : 点击启动训练
-FE -> API : POST /api/tasks/{id}/start
+FE -> API : POST /xunlian/{id}/qidong
 API -> FT : qidong_xunlian(renwu_id)
 FT -> PP : jiancha_yusuan(renwu_id, eps)
 PP -> DB : 查询累计隐私消耗
@@ -64,13 +64,14 @@ alt 预算不足
   API --> FE : {code:4001, message:"隐私预算不足"}
   FE --> U : 提示预算不足
 else 预算充足
-  FT -> FL : 启动训练（全局参数、训练配置、隐私参数）
+  FT -> FL : 启动后台训练（全局参数、训练配置、隐私参数）
+note right of API : 启动接口立即返回；前端每 3 秒轮询 GET /xunlian/{id} 获取状态
   loop 每一轮训练
     FL -> CL : 下发全局模型参数与隐私参数
-    CL -> CL : 用本地数据训练
-    CL -> PP : jiazao_gengxin(模型更新, 隐私配置)
-    PP --> CL : 裁剪并加噪后的更新
-    CL --> FL : 上传加噪更新、样本数、损失
+    CL -> CL : 用本地数据训练，按阈值裁剪更新
+    CL --> FL : 上传裁剪后的更新、样本数、损失
+    FL -> PP : jiagong(更新, ε, 阈值) 服务端统一裁剪加噪
+    PP --> FL : 加噪后的更新
     FL -> FT : 汇总本轮各参与方更新
     FT -> FT : juhe_canshu(按样本数加权平均)
     FT -> PP : jilu_yusuan(renwu_id, lunci, eps)
@@ -84,7 +85,7 @@ else 预算充足
 end
 
 U -> FE : 打开结果与隐私页
-FE -> API : GET /api/tasks/{id}/curves
+FE -> API : GET /xunlian/{id}/quxian
 API -> FT : chaxun_zhuangtai(renwu_id)
 FT -> DB : 查询 lunci_jilu
 DB --> FT : 每轮损失与准确率

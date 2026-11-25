@@ -38,8 +38,8 @@ digraph jiegou {
   FL [label=<
     <TABLE BORDER="1" CELLBORDER="1" CELLSPACING="4" CELLPADDING="3" COLOR="#333333">
       <TR><TD COLSPAN="2"><B>联邦训练子系统</B></TD></TR>
-      <TR><TD>Flower 协调服务</TD><TD>参与方客户端</TD></TR>
-      <TR><TD>PyTorch 训练器</TD><TD>差分隐私模块</TD></TR>
+      <TR><TD>训练协调器（自研）</TD><TD>参与方客户端</TD></TR>
+      <TR><TD>NumPy 训练器</TD><TD>差分隐私模块</TD></TR>
     </TABLE>>];
 
   LOCAL [label=<
